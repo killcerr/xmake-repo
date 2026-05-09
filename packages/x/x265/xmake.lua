@@ -3,12 +3,13 @@ package("x265")
     set_description("A free software library and application for encoding video streams into the H.265/MPEG-H HEVC compression format.")
     set_license("GPL-2.0")
 
-    add_urls("https://github.com/videolan/x265.git",
-             "https://bitbucket.org/multicoreware/x265_git")
+    add_urls("https://bitbucket.org/multicoreware/x265_git.git",
+             "https://github.com/videolan/x265.git")
 
     add_urls("https://github.com/videolan/x265/archive/refs/tags/$(version).tar.gz", {alias = "github"})
     add_urls("https://bitbucket.org/multicoreware/x265_git/downloads/x265_$(version).tar.gz", {alias = "bitbucket"})
 
+    add_versions("bitbucket:4.1", "a31699c6a89806b74b0151e5e6a7df65de4b49050482fe5ebf8a4379d7af8f29")
     add_versions("bitbucket:4.0", "75b4d05629e365913de3100b38a459b04e2a217a8f30efaa91b572d8e6d71282")
 
     add_versions("github:3.4", "544d147bf146f8994a7bf8521ed878c93067ea1c7c6e93ab602389be3117eaaf")
@@ -20,6 +21,7 @@ package("x265")
     add_configs("svt_hevc", {description = "Enable SVT HEVC Encoder", default = false, type = "boolean"})
     add_configs("high_bit_depth", {description = "Store pixel samples as 16bit values (Main10/Main12)", default = false, type = "boolean"})
     add_configs("main12", {description = "Support Main12 instead of Main10", default = false, type = "boolean"})
+    add_configs("vmaf", {description = "Enable vmaf", default = false, type = "boolean"})
     if is_plat("linux") then
         add_configs("numa", {description = "Enable libnuma", default = false, type = "boolean"})
     elseif is_plat("wasm") then
@@ -40,12 +42,30 @@ package("x265")
     if on_check then
         on_check("cross", function (package)
             if package:version():ge("4.0") then
-                raise("package(x265 >=4.0) unsupported cross pltform")
+                raise("package(x265 >=4.0) unsupported cross platform")
             end
         end)
     end
 
-    on_install("!cross", function (package)
+    on_load(function (package)
+        if package:config("numa") then
+            package:add("deps", "numactl")
+        end
+        if package:config("vmaf") then
+            package:add("deps", "vmaf")
+        end
+    end)
+
+    on_install(function (package)
+        -- Workaround for CMake 4.0+
+        for _, source in ipairs(os.files("**.txt")) do
+            io.replace(source, [[VERSION 2.8.8]], [[VERSION 2.8.8...3.10]], {plain = true})
+        end
+        io.replace("source/CMakeLists.txt", [[if(POLICY CMP0025)]], [[if(0)]], {plain = true})
+        io.replace("source/CMakeLists.txt", [[if(POLICY CMP0054)]], [[if(0)]], {plain = true})
+        -- Fix appleclang
+        io.replace("source/CMakeLists.txt", [[if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")]], [[if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang|Clang")]], {plain = true})
+
         os.cd("source")
         -- Let xmake cp pdb
         io.replace("CMakeLists.txt", "if((WIN32 AND ENABLE_CLI) OR (WIN32 AND ENABLE_SHARED))", "if(0)", {plain = true})
@@ -68,13 +88,9 @@ package("x265")
         table.insert(configs, "-DMAIN12=" .. (package:config("main12") and "ON" or "OFF"))
         table.insert(configs, "-DENABLE_CLI=" .. (package:config("tools") and "ON" or "OFF"))
         table.insert(configs, "-DNATIVE_BUILD=" .. (package:is_cross() and "OFF" or "ON"))
+        table.insert(configs, "-DENABLE_LIBNUMA=" .. (package:config("numa") and "ON" or "OFF"))
+        table.insert(configs, "-DENABLE_VMAF=" .. (package:config("vmaf") and "ON" or "OFF"))
 
-        if package:config("numa") then
-            table.insert(configs, "-DENABLE_LIBNUMA=ON")
-            package:add("syslinks", "numa")
-        else
-            table.insert(configs, "-DENABLE_LIBNUMA=OFF")
-        end
         if package:version() then
             table.insert(configs, "-DX265_LATEST_TAG=" .. package:version():rawstr())
         end
@@ -92,10 +108,6 @@ package("x265")
             end
         end
 
-        if package:is_plat("windows") then
-            table.insert(configs, "-DCMAKE_COMPILE_PDB_OUTPUT_DIRECTORY=''")
-        end
-
         local opt = {}
         if package:gitref() or package:version():ge("4.0") then
             if package:is_plat("wasm") then
@@ -111,14 +123,6 @@ package("x265")
             end
             -- Error links, switch to xmake pc file
             os.rm(package:installdir("lib/pkgconfig/x265.pc"))
-
-            if package:is_debug() then
-                local dir = package:installdir(package:config("shared") and "bin" or "lib")
-                os.trycp(path.join(package:buildir(), "libx265.pdb"), dir)
-                if package:config("tools") then
-                    os.trycp(path.join(package:buildir(), "x265.pdb"), package:installdir("bin"))
-                end
-            end
         else
             if package:config("shared") then
                 os.tryrm(package:installdir("lib/libx265.a"))

@@ -7,6 +7,10 @@ package("tinygltf")
     add_urls("https://github.com/syoyo/tinygltf/archive/refs/tags/$(version).tar.gz",
              "https://github.com/syoyo/tinygltf.git")
 
+    add_versions("v3.0.0", "806b0f1ba8007837fcd531e23872286f8a8870ee23275e1eb5304cdb48e4cb30")
+    add_versions("v2.9.7", "9d31cf7f22e81febaf1ad587d7722582c154f7d9125673ee46c0c594765e8f35")
+    add_versions("v2.9.6", "ba2c47a095136bfc8a5d085421e60eb8e8df3bca4ae36eb395084c1b264c6927")
+    add_versions("v2.9.5", "7b93da27c524dd17179a0eeba6f432b0060d82f6222630ba027c219ce11e24db")
     add_versions("v2.9.3", "f5f282508609a0098048c8ff25d72f4ef0995bc1d46bc7a5d740e559d80023d2")
     add_versions("v2.9.2", "b34d1456bb1d63bbb4e05ea1e4d8691d0253a03ef72385a8bffd2fae4b743feb")
     add_versions("v2.8.22", "97c3eb1080c1657cd749d0b49af189c6a867d5af30689c48d5e19521e7b5a070")
@@ -19,16 +23,34 @@ package("tinygltf")
     add_deps("cmake", "nlohmann_json", "stb")
 
     on_install(function (package)
+        if package:version():ge("v3.0.0") then
+            local includedir = package:installdir("include")
+            os.cp("tiny_gltf_v3.h", includedir)
+            os.cp("tinygltf_json.h", includedir)
+        end
+
+        io.replace("tiny_gltf.h", [[#include "json.hpp"]], "#include <nlohmann/json.hpp>", {plain = true})
+
         local configs = {
             "-DTINYGLTF_BUILD_LOADER_EXAMPLE=OFF",
-            "-DTINYGLTF_HEADER_ONLY=ON"
+            "-DTINYGLTF_HEADER_ONLY=ON",
+            "-DTINYGLTF_INSTALL_VENDOR=OFF",
         }
         table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:is_debug() and "Debug" or "Release"))
         table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
         import("package.tools.cmake").install(package, configs)
+        
     end)
 
     on_test(function (package)
+        if package:version():ge("v3.0.0") then
+            assert(package:check_cxxsnippets({test = [[
+                void test() {
+                    tg3_model model;
+                }
+            ]]}, {configs = {languages = "c++14"}, includes = "tiny_gltf_v3.h"}))
+        end
+
         assert(package:check_cxxsnippets({test = [[
             void test() {
                 tinygltf::TinyGLTF loader;

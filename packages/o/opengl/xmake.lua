@@ -7,12 +7,16 @@ package("opengl")
         -- we always get it from compiler toolchain
         if package:is_plat("macosx") then
             return {frameworks = "OpenGL", defines = "GL_SILENCE_DEPRECATION"}
-        elseif package:is_plat("windows", "mingw") then
+        elseif package:is_plat("windows", "mingw", "msys") then
             return {links = "opengl32"}
         end
         if opt.system then
             if package:is_plat("linux") and package.find_package then
-                return package:find_package("opengl", opt) or package:find_package("libgl", opt)
+                return package:find_package("OpenGL", opt) or package:find_package("GL", opt) or package:find_package("pkgconfig::opengl", opt) or package:find_package("pkgconfig::gl", opt)
             end
         end
     end)
+
+    if is_plat("linux") then
+        add_extsources("apt::libopengl-dev")
+    end

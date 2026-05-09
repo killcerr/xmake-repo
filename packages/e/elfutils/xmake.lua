@@ -4,12 +4,18 @@ package("elfutils")
     set_description("Libraries and utilities for handling ELF objects")
     set_license("GPL-2.0")
 
-    set_urls("https://sourceware.org/elfutils/ftp/$(version)/elfutils-$(version).tar.bz2")
+    add_urls("https://github.com/xmake-mirror/elfutils/releases/download/elfutils-$(version)/elfutils-$(version).tar.bz2",
+             "https://sourceware.org/elfutils/ftp/$(version)/elfutils-$(version).tar.bz2")
+
     add_versions("0.183", "c3637c208d309d58714a51e61e63f1958808fead882e9b607506a29e5474f2c5")
     add_versions("0.189", "39bd8f1a338e2b7cd4abc3ff11a0eddc6e690f69578a57478d8179b4148708c8")
+    add_versions("0.190", "8e00a3a9b5f04bc1dc273ae86281d2d26ed412020b391ffcc23198f10231d692")
 
     add_patches("0.183", path.join(os.scriptdir(), "patches", "0.183", "configure.patch"), "7a16719d9e3d8300b5322b791ba5dd02986f2663e419c6798077dd023ca6173a")
+    add_patches("0.183", path.join(os.scriptdir(), "patches", "0.183", "libelf-map.patch"), "27fc4a072c28b763896d5c63c23f81805cd5e25652b4836b6d139d7739c5e62f")
     add_patches("0.189", path.join(os.scriptdir(), "patches", "0.189", "configure.patch"), "b4016a97e6aaad92b15fad9a594961b1fc77a6d054ebadedef9bb3a55e99a8f8")
+    add_patches("0.189", path.join(os.scriptdir(), "patches", "0.189", "libelf-map.patch"), "27fc4a072c28b763896d5c63c23f81805cd5e25652b4836b6d139d7739c5e62f")
+    add_patches("0.190", path.join(os.scriptdir(), "patches", "0.190", "configure.patch"), "8118132b8499ba54b0dbed823295d17f79670060c2cee9f3a186ce966bed9a75")
 
     add_configs("libelf",   {description = "Enable libelf", default = true, type = "boolean"})
     add_configs("libdw",    {description = "Enable libdw", default = true, type = "boolean"})
@@ -38,13 +44,11 @@ package("elfutils")
         on_check("android", function (package)
             local ndk = package:toolchain("ndk")
             local ndk_sdkver = ndk:config("ndk_sdkver")
-            local ndkver = ndk:config("ndkver")
-            assert(ndkver and tonumber(ndkver) < 26, "package(elfutils): need ndk version < 26 for android")
             assert(ndk_sdkver and tonumber(ndk_sdkver) <= 23, "package(elfutils): need ndk api level <= 23 for android")
         end)
     end
 
-    on_install("linux", "android", function (package)
+    on_install("linux", "cross", "android", function (package)
         local configs = {"--disable-dependency-tracking",
                          "--disable-silent-rules",
                          "--program-prefix=elfutils-",

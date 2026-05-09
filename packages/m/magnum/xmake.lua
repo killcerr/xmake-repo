@@ -57,7 +57,7 @@ package("magnum")
             package:add("deps", "glfw")
         end
         if package:config("sdl2") then
-            package:add("deps", "libsdl", {configs = {sdlmain = false}})
+            package:add("deps", "libsdl2", {configs = {sdlmain = false}})
         end
         if package:config("glx") then
             package:add("deps", "libx11")
@@ -99,7 +99,7 @@ package("magnum")
         for _, utility in ipairs(utilities) do
             table.insert(configs, "-DWITH_" .. utility:upper() .. "=" .. (package:config(utility) and "ON" or "OFF"))
         end
-        import("package.tools.cmake").install(package, configs, {buildir = os.tmpfile() .. ".dir"})
+        import("package.tools.cmake").install(package, configs, {builddir = os.tmpfile() .. ".dir"})
     end)
 
     on_test(function (package)

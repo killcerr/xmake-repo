@@ -6,6 +6,23 @@ package("aws-c-io")
     add_urls("https://github.com/awslabs/aws-c-io/archive/refs/tags/$(version).tar.gz",
              "https://github.com/awslabs/aws-c-io.git")
 
+    add_versions("v0.26.3", "521fd0848fca661130bbb7278a414d7a38bdcb9bc8ffa89f6660d84e5838a303")
+    add_versions("v0.26.1", "5481178b99f074314b23b39b35786715fb0c1bf9773023ff83efe0d62d6e0ce2")
+    add_versions("v0.26.0", "27591a4d67b7401dc0b87f8fec91b1c93764decb32229086113c80d4d6d6d3c0")
+    add_versions("v0.23.3", "cdcb31b694fc28ba96237ee33a742679daf2dcabfd41464f8a68fbd913907085")
+    add_versions("v0.23.2", "3a335b812411c30bcc64072f148ddf6cd632d8261799cd04e54051b44506feb9")
+    add_versions("v0.22.0", "07b0ac7271e482e1f5f1e84fcf33ec23fb8a2c12e7a7f331455a5f1d38b9fbfd")
+    add_versions("v0.21.2", "75ada840ed7ef1b8e6908a9d2d017375f9093b9db04c51caf68f8edcfd20cc4c")
+    add_versions("v0.21.1", "1d4c6ac5d65acdad8c07f7b0bdd417fd52ab99d29d6d79788618eba317679cf1")
+    add_versions("v0.21.0", "31232dd35995c9d5d535f3cf5ce7d561d680285a0e2a16318d4f0d4512b907c4")
+    add_versions("v0.20.1", "8e2abf56e20f87383c44af6818235a12f54051b40c98870f44b2d5d05be08641")
+    add_versions("v0.19.1", "f2fea0c066924f7fe3c2b1c7b2fa9be640f5b16a6514854226330e63a1faacd0")
+    add_versions("v0.18.1", "65d275bbde1a1d287cdcde62164dc015b9613a5525fe688e972111d8a3b568fb")
+    add_versions("v0.18.0", "c65a9f059dfe3208dbc92b7fc11f6d846d15e1a14cd0dabf98041ce9627cadda")
+    add_versions("v0.17.0", "edf8dbd19704685f7400c6fc3fcb875ab858b1e55382c7ec933efddff28b2332")
+    add_versions("v0.15.3", "d8cb4d7d3ec4fb27cbce158d6823a1f2f5d868e116f1d6703db2ab8159343c3f")
+    add_versions("v0.15.1", "70f119b44f2758fc482872141cb712122f1c3c82fea16d203b7286a98c139a71")
+    add_versions("v0.15.0", "a8fbc39721395c12fd66bf2ce39b4cac24df395b35700b9ae718a7923d229df4")
     add_versions("v0.14.19", "127aa30608084affbcc0b7b26982ab4d98404d1aa103b91693d0e76b564da21d")
     add_versions("v0.14.18", "44e9dee181ed7d867d1cc2944f4b4669259b569fc56bdd6dd4c7c30440fc4bf8")
     add_versions("v0.14.16", "bf78ab5dbeeaec2f55cb035e18c49ce8ba4e2ea7519e8b94e18ccd8851e39f4d")
@@ -27,7 +44,7 @@ package("aws-c-io")
     elseif is_plat("linux", "bsd", "cross", "android") then
         add_deps("s2n-tls")
     elseif is_plat("macosx", "iphoneos") then
-        add_frameworks("Security")
+        add_frameworks("Security", "Network")
     end
 
     add_deps("cmake", "aws-c-common", "aws-c-cal")
@@ -48,7 +65,7 @@ package("aws-c-io")
         table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
         table.insert(configs, "-DENABLE_SANITIZERS=" .. (package:config("asan") and "ON" or "OFF"))
         if package:is_plat("windows") then
-            table.insert(configs, "-DAWS_STATIC_MSVC_RUNTIME_LIBRARY=" .. (package:config("vs_runtime"):startswith("MT") and "ON" or "OFF"))
+            table.insert(configs, "-DAWS_STATIC_MSVC_RUNTIME_LIBRARY=" .. (package:runtimes():startswith("MT") and "ON" or "OFF"))
         end
         import("package.tools.cmake").install(package, configs)
 

@@ -5,6 +5,11 @@ package("assimp")
 
     set_urls("https://github.com/assimp/assimp/archive/refs/tags/$(version).zip",
              "https://github.com/assimp/assimp.git")
+
+    add_versions("v6.0.4", "1eeb63f3e6f6c9d820cc52f7d44fa6b6557256330f45ddaa903aa658c47fece5")
+    add_versions("v6.0.3", "e9b3208513aa4566955a45cc085e031f7053e28f2e6a0e33d1657450bd0519c5")
+    add_versions("v6.0.2", "699b455b92ce2b6b39aa06a957e59f9d83e8652c8b51364e811660a4acb9ee49")
+    add_versions("v6.0.1", "24256974f66e36df6c72b78d4903e1bb6875b6d3f8aa8638639def68f2c50fd0")
     add_versions("v5.4.3", "795c29716f4ac123b403e53b677e9f32a8605c4a7b2d9904bfaae3f4053b506d")
     add_versions("v5.4.2", "03e38d123f6bf19a48658d197fd09c9a69db88c076b56a476ab2da9f5eb87dcc")
     add_versions("v5.4.1", "08837ee7c50b98ca72d2c9e66510ca6640681db8800aa2d3b1fcd61ccc615113")
@@ -25,6 +30,7 @@ package("assimp")
     add_patches("v5.2.3", path.join(os.scriptdir(), "patches", "5.2.1", "fix_zlib_filefunc_def.patch"), "a9f8a9aa1975888ea751b80c8268296dee901288011eeb1addf518eac40b71b1")
     add_patches("v5.2.3", path.join(os.scriptdir(), "patches", "5.2.3", "cmake_static_crt.patch"), "3872a69976055bed9e40814e89a24a3420692885b50e9f9438036e8d809aafb4")
     add_patches("v5.2.4", path.join(os.scriptdir(), "patches", "5.2.4", "fix_x86_windows_build.patch"), "becb4039c220678cf1e888e3479f8e68d1964c49d58f14c5d247c86b4a5c3293")
+    add_patches("v5.4.3", path.join(os.scriptdir(), "patches", "5.4.3", "fix_mingw.patch"), "2498bb9438a0108becf1c514fcbfc103e012638914c9d21160572ed24a9fa3b3")
 
     if not is_host("windows") then
         add_extsources("pkgconfig::assimp")
@@ -44,6 +50,7 @@ package("assimp")
     add_configs("android_jniiosysystem", {description = "Enable Android JNI IOSystem support.", default = false, type = "boolean"})
     add_configs("asan",                  {description = "Enable AddressSanitizer.", default = false, type = "boolean"})
     add_configs("ubsan",                 {description = "Enable Undefined Behavior sanitizer.", default = false, type = "boolean"})
+    add_configs("draco",                 {description = "Enable Draco, primary for GLTF.", default = false, type = "boolean"})
 
     add_deps("cmake", "minizip", "zlib")
 
@@ -103,6 +110,10 @@ package("assimp")
         add_config_arg("asan",             "ASSIMP_ASAN")
         add_config_arg("ubsan",            "ASSIMP_UBSAN")
 
+        if package:version():ge("5.2.5") then
+            add_config_arg("draco", "ASSIMP_BUILD_DRACO")
+        end
+
         if package:is_plat("android") then
             add_config_arg("android_jniiosysystem", "ASSIMP_ANDROID_JNIIOSYSTEM")
         end
@@ -135,6 +146,9 @@ package("assimp")
             local minizip = package:dep("minizip")
             if minizip and not minizip:is_system() then
                 packagedeps = table.join2(packagedeps or {}, "minizip")
+                if minizip:config("bzip2") then
+                    table.insert(packagedeps, "bzip2")
+                end
             end
             -- fix ninja debug build
             os.mkdir(path.join(package:buildir(), "code/pdb"))
@@ -142,6 +156,9 @@ package("assimp")
             if package:is_debug() and package:has_runtime("MD", "MT") then
                 io.replace("CMakeLists.txt", "/D_DEBUG", "", {plain = true})
             end
+
+            -- fix std::min/max conflict with windows.h
+            io.insert("code/AssetLib/IFC/IFCLoader.cpp", 1, "#define NOMINMAX")
         end
 
         local zlib = package:dep("zlib")
@@ -172,10 +189,14 @@ package("assimp")
     end)
 
     on_test(function (package)
+        local language = "c++17"
+        if package:version() and package:version():lt("v5.2.5") then
+            language = "c++11"
+        end
         assert(package:check_cxxsnippets({test = [[
             #include <cassert>
             void test() {
                 Assimp::Importer importer;
             }
-        ]]}, {configs = {languages = "c++11"}, includes = "assimp/Importer.hpp"}))
+        ]]}, {configs = {languages = language}, includes = "assimp/Importer.hpp"}))
     end)

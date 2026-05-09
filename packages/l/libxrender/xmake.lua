@@ -1,20 +1,23 @@
 package("libxrender")
-
     set_homepage("https://www.x.org/")
     set_description("X.Org: Library for the Render Extension to the X11 protocol")
 
     set_urls("https://www.x.org/archive/individual/lib/libXrender-$(version).tar.gz")
     add_versions("0.9.11", "6aec3ca02e4273a8cbabf811ff22106f641438eb194a12c0ae93c7e08474b667")
+    add_versions("0.9.12", "0fff64125819c02d1102b6236f3d7d861a07b5216d8eea336c3811d31494ecf7")
 
     if is_plat("linux") then
         add_extsources("apt::libxrender-dev")
     end
 
-    if is_plat("macosx", "linux") then
-        add_deps("pkg-config", "libx11", "xorgproto")
-    end
+    on_load(function (package)
+        package:add("deps", "libx11", { configs = { shared = package:config("shared") } })
+        if package:is_plat("macosx", "linux", "bsd", "cross") then
+            package:add("deps", "pkg-config", "xorgproto")
+        end
+    end)
 
-    on_install("macosx", "linux", function (package)
+    on_install("macosx", "linux", "bsd", "cross", function (package)
         local configs = {"--sysconfdir=" .. package:installdir("etc"),
                          "--localstatedir=" .. package:installdir("var"),
                          "--disable-dependency-tracking",

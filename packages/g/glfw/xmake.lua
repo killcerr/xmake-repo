@@ -1,11 +1,11 @@
 package("glfw")
-
     set_homepage("https://www.glfw.org/")
     set_description("GLFW is an Open Source, multi-platform library for OpenGL, OpenGL ES and Vulkan application development.")
     set_license("zlib")
 
     add_urls("https://github.com/glfw/glfw/archive/refs/tags/$(version).tar.gz",
              "https://github.com/glfw/glfw.git")
+
     add_versions("3.3.2", "98768e12e615fbe9f3386f5bbfeb91b5a3b45a8c4c77159cef06b1f6ff749537")
     add_versions("3.3.4", "cc8ac1d024a0de5fd6f68c4133af77e1918261396319c24fd697775a6bc93b63")
     add_versions("3.3.5", "32fdb8705784adfe3082f97e0d41e7c515963e977b5a14c467a887cf0da827b5")
@@ -29,7 +29,7 @@ package("glfw")
         add_frameworks("Cocoa", "IOKit")
     elseif is_plat("windows") then
         add_syslinks("user32", "shell32", "gdi32")
-    elseif is_plat("mingw") then
+    elseif is_plat("mingw", "msys") then
         add_syslinks("gdi32")
     elseif is_plat("linux") then
         add_syslinks("dl", "pthread")
@@ -44,7 +44,11 @@ package("glfw")
             package:add("deps", "libx11", "libxrandr", "libxrender", "libxinerama", "libxfixes", "libxcursor", "libxi", "libxext")
         end
         if package:config("wayland") then
-            package:add("deps", "wayland")
+            package:add("deps", "wayland", "wayland-protocols")
+        end
+
+        if package:is_plat("windows") and package:config("shared") then
+            package:add("defines", "GLFW_DLL")
         end
     end)
 

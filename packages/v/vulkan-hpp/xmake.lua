@@ -6,7 +6,10 @@ package("vulkan-hpp")
     set_license("Apache-2.0")
 
     add_urls("https://github.com/KhronosGroup/Vulkan-Hpp.git")
-    -- when adding a new sdk version, please also update vulkan-headers, vulkan-loader, vulkan-utility-libraries, spirv-headers, spirv-reflect, glslang and volk packages
+
+    -- when adding a new sdk version, please ensure vulkan-headers, vulkan-hpp, vulkan-loader, vulkan-tools, vulkan-validationlayers, vulkan-utility-libraries, spirv-headers, spirv-reflect, spirv-tools, glslang and volk packages are updated simultaneously
+    add_versions("v1.4.335", "9d55db6621613adf9ccea21dbc853fbd27ea2924")
+    add_versions("v1.4.309", "16da8bd29e5d0b921c92d406d194759c0df6a2b8")
     add_versions("v1.2.180", "bfa6d4765212505c8241a44b97dc5a9ce3aa2969")
     add_versions("v1.2.189", "58ff1da4c03f5f124eb835f41a9dd8fe3c2e8087")
     add_versions("v1.2.198", "d8c9f4f0eee6972622a1c3aabab5ed558d37c1c0")
@@ -52,7 +55,7 @@ package("vulkan-hpp")
         end
         io.replace("CMakeLists.txt", "-Werror", "", {plain = true})
         io.replace("CMakeLists.txt", "/WX", "", {plain = true})
-        import("package.tools.cmake").build(package, {buildir = "build"})
+        import("package.tools.cmake").build(package, {builddir = "build"})
         if arch_prev and plat_prev then
             package:plat_set(plat_prev)
             package:arch_set(arch_prev)

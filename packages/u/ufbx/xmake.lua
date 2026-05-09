@@ -6,6 +6,12 @@ package("ufbx")
     set_urls("https://github.com/ufbx/ufbx/archive/refs/tags/$(version).tar.gz",
              "https://github.com/ufbx/ufbx.git")
 
+    add_versions("v0.21.3", "6973c52c70114eb065f98a7e0e29a6588fb95440673eae4765a4eaf8609801b8")
+    add_versions("v0.21.2", "41488cde8a7dd43e361d04a7d4003123be9af8eaa2cc26d48e1834b44d120606")
+    add_versions("v0.20.1", "1e45f7040ee38e8a6b564a5becb6b64335af89505f7077a0cc7bce092e188fca")
+    add_versions("v0.20.0", "108fde070dc7c1471ad5a08890804cf92c84de7415cbb12d21f4ceaaa13a14cc")
+    add_versions("v0.18.2", "9161239e9aade9fc3e432420450687fa538893566002ffc016aa0cba4d1c36a6")
+    add_versions("v0.15.1", "de8766f2f4dd1230a2cf32c0f1ffa5e14cf2ce4f46dfe8596b83b3d7f02d5dbe")
     add_versions("v0.15.0", "5de2e49f2bf93a21697b98a1885004487e850efffa29f054703affb1c1b3fbc8")
     add_versions("v0.14.3", "190bf253d5c7da55b54fa9c16357b0de1ec356ff6a92f5b4e0c6b39d2d3ebff7")
     add_versions("v0.14.2", "0a50e7328a20a5e8be25a4ae13af1f2dacb51531a94321ef3fe5c57d799fc72e")
@@ -27,6 +33,7 @@ package("ufbx")
                 end
         ]])
         import("package.tools.xmake").install(package)
+        os.trycp("extra/*", package:installdir("include"))
     end)
 
     on_test(function (package)

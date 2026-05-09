@@ -5,6 +5,9 @@ package("efsw")
 
     set_urls("https://github.com/SpartanJ/efsw/archive/refs/tags/$(version).tar.gz",
              "https://github.com/SpartanJ/efsw.git")
+    add_versions("1.5.1", "403691e15b48dc0e67e7d3fe6e6aa3d116bc8420790df93d1d90d2cecaa06e70")
+    add_versions("1.5.0", "20421778fd59a845393ff6a7a1f461228574fe5062b1bf5f82d533c0d25a41bd")
+    add_versions("1.4.1", "f0ddee587928737c6a3dc92eb88266a804c77279cbdf29d47e5e6f6ad6c7fd9a")
     add_versions("1.4.0", "9eed5fc8471767faa44134f5379d4de02825e3756007dafa482fd1656e42bc4a")
     add_versions("1.3.1", "3c0efe023258712d25644977227f07cf7edf7e5dc00ffa8d88733f424fa6af86")
     add_versions("1.3.0", "e190b72f23d92c42e1a0dab9bb6354a56f75c7535fd1f3e3a10b1c317e05f8f6")

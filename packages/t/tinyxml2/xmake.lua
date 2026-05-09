@@ -6,6 +6,7 @@ package("tinyxml2")
     add_urls("https://github.com/leethomason/tinyxml2/archive/refs/tags/$(version).tar.gz",
              "https://github.com/leethomason/tinyxml2.git")
 
+    add_versions("11.0.0", "5556deb5081fb246ee92afae73efd943c889cef0cafea92b0b82422d6a18f289")
     add_versions("8.0.0", "6ce574fbb46751842d23089485ae73d3db12c1b6639cda7721bf3a7ee862012c")
     add_versions("9.0.0", "cc2f1417c308b1f6acc54f88eb70771a0bf65f76282ce5c40e54cfe52952702c")
     add_versions("10.0.0", "3bdf15128ba16686e69bce256cc468e76c7b94ff2c7f391cc5ec09e40bff3839")
@@ -20,7 +21,7 @@ package("tinyxml2")
             package:add("defines", "TINYXML2_IMPORT")
         end
 
-        if package:is_plat("android") and package:is_arch("armeabi-v7a") then
+        if package:is_plat("android") and package:is_arch("armeabi-v7a", "x86") then
             local ndk_sdkver = package:toolchain("ndk"):config("ndk_sdkver")
             if ndk_sdkver and tonumber(ndk_sdkver) < 24 then
                 io.replace("tinyxml2.cpp", "ftello", "ftell", {plain = true})
